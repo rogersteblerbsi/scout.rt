@@ -31,7 +31,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -233,18 +236,27 @@ public class JettyServer {
     HttpConfiguration httpConfig = new HttpConfiguration();
     httpConfig.setSendServerVersion(false);
     httpConfig.setSendDateHeader(false);
-    ServerConnector http = new ServerConnector(m_server, new HttpConnectionFactory(httpConfig));
+    ServerConnector http = new ServerConnector(m_server, new HttpConnectionFactory(httpConfig), new HTTP2CServerConnectionFactory(httpConfig));
     http.setPort(port);
     return http;
   }
 
   protected ServerConnector createHttpsServerConnector(int port) {
-    SslContextFactory.Server sslContextFactory = createSslContextFactory();
     HttpConfiguration httpsConfig = new HttpConfiguration();
     httpsConfig.addCustomizer(new SecureRequestCustomizer());
     httpsConfig.setSendServerVersion(false);
     httpsConfig.setSendDateHeader(false);
-    ServerConnector https = new ServerConnector(m_server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfig));
+
+    HttpConnectionFactory http11 = new HttpConnectionFactory(httpsConfig);
+    HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(httpsConfig);
+
+    ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+    alpn.setDefaultProtocol(http11.getProtocol());
+
+    SslContextFactory.Server sslContextFactory = createSslContextFactory();
+    SslConnectionFactory tls = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
+    ServerConnector https = new ServerConnector(m_server, tls, alpn, h2, http11);
+
     https.setPort(port);
     return https;
   }
