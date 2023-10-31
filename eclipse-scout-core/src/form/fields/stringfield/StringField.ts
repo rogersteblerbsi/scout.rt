@@ -362,6 +362,11 @@ export class StringField extends BasicField<string> {
     }
   }
 
+  /**
+   * Inserts the text at the current cursor position. If text is selected, it will be replaced.
+   *
+   * @param text the text to be inserted.
+   */
   insertText(text: string) {
     if (!this.rendered) {
       this._postRenderActions.push(this.insertText.bind(this, text));
@@ -375,6 +380,11 @@ export class StringField extends BasicField<string> {
       return;
     }
 
+    if (this.inputObfuscated) {
+      // Ensure obfuscated text will be replaced completely and not modified
+      this.selectAll();
+    }
+
     // Prevent insert if new length would exceed maxLength to prevent unintended deletion of characters at the end of the string
     let selection = this._getSelection();
     let text = this._applyTextToSelection(this.$field.val() as string, textToInsert, selection);
@@ -383,7 +393,12 @@ export class StringField extends BasicField<string> {
       return;
     }
 
-    this.$field.val(text);
+    let previousFocus = this.$field.activeElement(true);
+    fields.focusAndInsertText(this.$field as JQuery<HTMLInputElement>, textToInsert);
+    // Function should only insert text and not change focus -> restore focus
+    previousFocus.focus();
+
+    // Move cursor after inserted text
     this._setSelection(selection.start + textToInsert.length);
 
     // Make sure display text gets sent (necessary if field does not have the focus)
@@ -395,10 +410,6 @@ export class StringField extends BasicField<string> {
   }
 
   protected _applyTextToSelection(text: string, textToInsert: string, selection: StringFieldSelection): string {
-    if (this.inputObfuscated) {
-      // Use empty text when input is obfuscated, otherwise text will be added to obfuscated text
-      text = '';
-    }
     return text.slice(0, selection.start) + textToInsert + text.slice(selection.end);
   }
 
