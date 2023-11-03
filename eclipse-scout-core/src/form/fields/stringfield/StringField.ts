@@ -114,29 +114,8 @@ export class StringField extends BasicField<string> {
   }
 
   protected _makeMultilineField(): JQuery {
-    let mouseDownHandler = function() {
-      this.mouseClicked = true;
-    }.bind(this);
-
     return this.$parent.makeElement('<textarea>')
       .on('wheel', this._onMouseWheel.bind(this))
-      .on('mousedown', mouseDownHandler)
-      .on('focus', event => {
-        (this.$field as JQuery).off('mousedown', mouseDownHandler);
-        if (!this.mouseClicked) { // only trigger on tab focus in
-          setTimeout(() => {
-            if (!this.rendered || this.session.focusManager.isElementCovertByGlassPane(this.$field)) {
-              return;
-            }
-            this._renderSelectionStart();
-            this._renderSelectionEnd();
-          });
-        }
-        this.mouseClicked = false;
-      })
-      .on('focusout', () => {
-        this.$field.on('mousedown', mouseDownHandler);
-      })
       .addDeviceClass();
   }
 
@@ -178,10 +157,9 @@ export class StringField extends BasicField<string> {
     this._renderSpellCheckEnabled();
     this._renderHasAction();
     this._renderMaxLength();
+    this._renderSelectionStart();
+    this._renderSelectionEnd();
     this._renderSelectionTrackingEnabled();
-    // Do not render selectionStart and selectionEnd here, because that would cause the focus to
-    // be set to <textarea>s in IE. Instead, the selection is rendered when the focus has entered
-    // the field, see _render(). #168648
     this._renderDropType();
   }
 
