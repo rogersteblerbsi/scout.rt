@@ -77,6 +77,10 @@ export class Cell<TValue = any> implements CellModel<TValue> {
     this.horizontalAlignment = hAlign;
   }
 
+  setHtmlEnabled(htmlEnabled: boolean) {
+    this.htmlEnabled = htmlEnabled;
+  }
+
   setValue(value: TValue) {
     this.value = value;
   }
