@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.eclipse.scout.rt.client.ModelContextProxy;
 import org.eclipse.scout.rt.client.ModelContextProxy.ModelContext;
@@ -276,7 +277,7 @@ public abstract class AbstractCalendar extends AbstractWidget implements ICalend
         ICalendarItemProvider provider = ConfigurationUtility.newInnerInstance(this, itemProviderClazz);
         producerList.add(provider);
         // add empty space menus to the context menu
-        menus.addAllOrdered(MenuUtility.filterMenusRec(provider.getMenus(), MenuUtility.createMenuFilterMenuTypes(CollectionUtility.hashSet(CalendarMenuType.EmptySpace), false)));
+        menus.addAllOrdered(provider.getMenus().stream().filter(MenuUtility.createMenuFilterMenuTypes(CollectionUtility.hashSet(CalendarMenuType.EmptySpace), false)).collect(Collectors.toList()));
       }
       catch (Exception e) {
         BEANS.get(ExceptionHandler.class).handle(new ProcessingException("error creating instance of class '" + itemProviderClazz.getName() + "'.", e));
@@ -699,7 +700,7 @@ public abstract class AbstractCalendar extends AbstractWidget implements ICalend
     }
     // add menus of provider
     if (provider != null) {
-      m_inheritedMenusOfSelectedProvider = MenuUtility.filterMenusRec(provider.getMenus(), MenuUtility.createMenuFilterMenuTypes(CollectionUtility.hashSet(CalendarMenuType.CalendarComponent), false));
+      m_inheritedMenusOfSelectedProvider = provider.getMenus().stream().filter(MenuUtility.createMenuFilterMenuTypes(CollectionUtility.hashSet(CalendarMenuType.CalendarComponent), false)).collect(Collectors.toList());
       getContextMenu().addChildActions(m_inheritedMenusOfSelectedProvider);
     }
   }
