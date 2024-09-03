@@ -76,7 +76,7 @@ class ResourcePanelTreeBox extends TreeBox<string> {
   }
 
   protected override _onTreeNodesChecked(event: TreeNodesCheckedEvent) {
-    this.tooltipSupport.close();
+    this._closeTooltip();
     // Make impossible to uncheck all nodes
     if (arrays.hasElements(this.tree.checkedNodes)) {
       super._onTreeNodesChecked(event);
@@ -88,7 +88,15 @@ class ResourcePanelTreeBox extends TreeBox<string> {
   }
 
   protected _createImpossibleToUncheckTooltip(node: TreeNode) {
-    this.tooltipSupport.open(node.$node);
+    if (this.tooltipSupport) {
+      this.tooltipSupport.open(node.$node);
+    }
+  }
+
+  protected _closeTooltip() {
+    if (this.tooltipSupport) {
+      this.tooltipSupport.close();
+    }
   }
 }
 
