@@ -7,9 +7,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {TooltipSupport} from '../tooltip/TooltipSupport';
+import {InitModelOf, TooltipSupport} from '../index';
+
+export const STATIC_TOOLTIP_VISIBLE = 3000;
 
 export class StaticTooltip extends TooltipSupport {
+
+  constructor(options: InitModelOf<TooltipSupport>) {
+    let defaultOptions = {
+      delay: STATIC_TOOLTIP_VISIBLE
+    };
+    super($.extend({}, defaultOptions, options));
+  }
 
   protected override _onMouseEnter(event: JQuery.MouseEnterEvent) {
     // NOP
@@ -17,5 +26,6 @@ export class StaticTooltip extends TooltipSupport {
 
   open($comp: JQuery) {
     this._showTooltip($comp);
+    this._tooltipTimeoutId = setTimeout(this._destroyTooltip.bind(this), this._options.delay);
   }
 }
