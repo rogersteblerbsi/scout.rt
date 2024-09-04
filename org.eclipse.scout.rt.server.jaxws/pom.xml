@@ -31,13 +31,6 @@
     <dependency>
       <groupId>jakarta.xml.ws</groupId>
       <artifactId>jakarta.xml.ws-api</artifactId>
-      <exclusions>
-        <exclusion>
-          <!-- jakarta.activation:jakarta.activation-api is be included instead -->
-          <groupId>com.sun.activation</groupId>
-          <artifactId>jakarta.activation</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>jakarta.activation</groupId>
