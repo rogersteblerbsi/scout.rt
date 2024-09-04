@@ -663,6 +663,13 @@
         <groupId>jakarta.xml.ws</groupId>
         <artifactId>jakarta.xml.ws-api</artifactId>
         <version>${master_dependency_jaxws_api_version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- jakarta.activation:jakarta.activation-api should be included instead -->
+            <groupId>com.sun.activation</groupId>
+            <artifactId>jakarta.activation</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- com.bsiag.scout.rt.rest.openapi as part of swagger-core-jakarta -->
