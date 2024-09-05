@@ -91,7 +91,7 @@ class ResourcePanelTreeBox extends TreeBox<string> {
     if (this.tooltipSupport) {
       // Clear possible ellipsis tooltip of the tree
       tooltips.find(this.tree.$data).forEach(tooltip => tooltip.destroy());
-      this.tooltipSupport.open(node.$node);
+      this.tooltipSupport.open(node.$node.children('.tree-node-checkbox'));
     }
   }
 
