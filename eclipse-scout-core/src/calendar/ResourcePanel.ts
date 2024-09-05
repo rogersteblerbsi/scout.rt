@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  arrays, CalendarResourceLookupCall, HtmlComponent, InitModelOf, LookupRow, ObjectOrModel, ResourcePanelTreeNode, scout, SingleLayout, StaticTooltip, Tree, TreeBox, TreeBoxTreeNode, TreeNode, TreeNodesCheckedEvent, Widget
+  arrays, CalendarResourceLookupCall, HtmlComponent, InitModelOf, LookupRow, ObjectOrModel, ResourcePanelTreeNode, scout, SingleLayout, StaticTooltip, tooltips, Tree, TreeBox, TreeBoxTreeNode, TreeNode, TreeNodesCheckedEvent, Widget
 } from '../index';
 
 export class ResourcePanel extends Widget {
@@ -89,6 +89,8 @@ class ResourcePanelTreeBox extends TreeBox<string> {
 
   protected _createImpossibleToUncheckTooltip(node: TreeNode) {
     if (this.tooltipSupport) {
+      // Clear possible ellipsis tooltip of the tree
+      tooltips.find(this.tree.$data).forEach(tooltip => tooltip.destroy());
       this.tooltipSupport.open(node.$node);
     }
   }
