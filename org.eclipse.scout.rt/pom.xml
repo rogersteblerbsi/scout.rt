@@ -160,6 +160,7 @@
       <dependency>
         <groupId>jakarta.mail</groupId>
         <artifactId>jakarta.mail-api</artifactId>
+        <!-- version should match the one included in next dependency angus-mail, include it here as well to ensure this version is always used -->
         <version>2.1.3</version>
       </dependency>
       <dependency>
@@ -797,6 +798,7 @@
       <dependency>
         <groupId>jakarta.activation</groupId>
         <artifactId>jakarta.activation-api</artifactId>
+        <!-- version should match the one included in next dependency angus-activation, include it here as well to ensure this version is always used -->
         <version>2.1.3</version>
       </dependency>
       <dependency>
