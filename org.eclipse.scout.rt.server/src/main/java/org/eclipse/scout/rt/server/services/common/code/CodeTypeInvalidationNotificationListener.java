@@ -26,7 +26,6 @@ import jakarta.annotation.PreDestroy;
 
 import org.eclipse.scout.rt.api.data.code.CodeTypeDo;
 import org.eclipse.scout.rt.api.data.code.CodeTypeUpdateMessageDo;
-import org.eclipse.scout.rt.api.data.code.IApiExposedCodeTypeContributor;
 import org.eclipse.scout.rt.api.uinotification.UiNotificationRegistry;
 import org.eclipse.scout.rt.platform.ApplicationScoped;
 import org.eclipse.scout.rt.platform.BEANS;
@@ -41,6 +40,7 @@ import org.eclipse.scout.rt.server.context.ServerRunContexts;
 import org.eclipse.scout.rt.shared.services.common.code.CodeService;
 import org.eclipse.scout.rt.shared.services.common.code.CodeTypeCacheKey;
 import org.eclipse.scout.rt.shared.services.common.code.CodeTypeCacheUtility;
+import org.eclipse.scout.rt.shared.services.common.code.IApiExposedCodeTypeContributor;
 import org.eclipse.scout.rt.shared.services.common.code.ICodeType;
 
 /**
@@ -121,13 +121,13 @@ public class CodeTypeInvalidationNotificationListener implements Consumer<ICache
     }
 
     public void notifyInvalidatedCodeTypes() {
-      Set<String> exposedCodeTypeIds = getExposedCodeTypeIds(); // only notify for CodeTypes which are exposed!
+      Set<Object> exposedCodeTypeIds = getExposedCodeTypeIds(); // only notify for CodeTypes which are exposed!
       CodeTypeCacheUtility codeTypeCacheUtility = BEANS.get(CodeTypeCacheUtility.class);
       List<CodeTypeDo> updatedAndExposedCodeTypes = BEANS.all(ICodeType.class).stream()
           .filter(codeType -> needsNotify(codeTypeCacheUtility.createCacheKey(codeType.getClass()), codeType))
+          .filter(codeType -> exposedCodeTypeIds.contains(codeType.getId()))
           .map(ICodeType::toDo)
           .filter(Objects::nonNull)
-          .filter(codeTypeDo -> exposedCodeTypeIds.contains(codeTypeDo.getId()))
           .collect(Collectors.toList());
       notifyExposedCodeTypeUpdate(updatedAndExposedCodeTypes);
     }
@@ -162,11 +162,11 @@ public class CodeTypeInvalidationNotificationListener implements Consumer<ICache
       return BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
     }
 
-    public Set<String> getExposedCodeTypeIds() {
-      var codeTypes = new HashSet<CodeTypeDo>();
+    public Set<Object> getExposedCodeTypeIds() {
+      HashSet<ICodeType> codeTypes = new HashSet<>();
       BEANS.all(IApiExposedCodeTypeContributor.class).forEach(contributor -> contributor.contribute(codeTypes));
       return codeTypes.stream()
-          .map(CodeTypeDo::getId)
+          .map(ICodeType::getId)
           .collect(toSet());
     }
   }

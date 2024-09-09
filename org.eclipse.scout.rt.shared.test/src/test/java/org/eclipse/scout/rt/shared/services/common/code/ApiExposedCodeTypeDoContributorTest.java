@@ -14,7 +14,6 @@ import java.util.Set;
 
 import org.eclipse.scout.rt.api.data.ApiExposed;
 import org.eclipse.scout.rt.api.data.code.CodeTypeDo;
-import org.eclipse.scout.rt.api.data.code.IApiExposedCodeTypeContributor;
 import org.eclipse.scout.rt.platform.BEANS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +21,7 @@ import org.junit.Test;
 public class ApiExposedCodeTypeDoContributorTest {
   @Test
   public void testContribute() {
-    Set<CodeTypeDo> dos = new HashSet<>();
+    Set<ICodeType> dos = new HashSet<>();
     BEANS.all(IApiExposedCodeTypeContributor.class).forEach(c -> c.contribute(dos));
     Assert.assertEquals(1, dos.size());
     Assert.assertEquals("1", dos.iterator().next().getId());

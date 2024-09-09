@@ -30,7 +30,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.scout.rt.api.data.code.CodeDo;
 import org.eclipse.scout.rt.api.data.code.CodeTypeDo;
 import org.eclipse.scout.rt.api.data.code.CodeTypeRequest;
-import org.eclipse.scout.rt.api.data.code.IApiExposedCodeTypeContributor;
+import org.eclipse.scout.rt.api.data.code.IApiExposedCodeTypeDoProvider;
 import org.eclipse.scout.rt.platform.BEANS;
 import org.eclipse.scout.rt.platform.nls.NlsLocale;
 import org.eclipse.scout.rt.platform.util.CollectionUtility;
@@ -67,8 +67,9 @@ public class CodeResource implements IRestResource {
   }
 
   protected Map<String, CodeTypeDo> getCodeTypesById(Set<String> ids) {
-    Set<CodeTypeDo> codeTypes = new HashSet<>();
-    BEANS.all(IApiExposedCodeTypeContributor.class).forEach(contributor -> contributor.contribute(codeTypes));
+    Set<CodeTypeDo> codeTypes = BEANS.optional(IApiExposedCodeTypeDoProvider.class)
+        .map(IApiExposedCodeTypeDoProvider::provide)
+        .orElse(Collections.emptySet());
     if (CollectionUtility.hasElements(ids)) {
       codeTypes.removeIf(codeType -> !ids.contains(codeType.getId()));
     }
