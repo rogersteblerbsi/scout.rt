@@ -37,5 +37,6 @@ public class DisposeWidgetsHybridAction extends AbstractHybridAction<DisposeWidg
         LOG.debug("Disposed hybrid widget with id {}", id);
       }
     }
+    fireHybridActionEndEvent();
   }
 }

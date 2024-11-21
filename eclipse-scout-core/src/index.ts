@@ -1020,6 +1020,7 @@ export * from './desktop/header/DesktopHeaderModel';
 export * from './desktop/header/DesktopHeaderEventMap';
 export * from './desktop/header/HeaderTabBoxController';
 export * from './desktop/header/DesktopHeaderLayout';
+export * from './desktop/hybrid/DisposeWidgetsHybridActionDo';
 export * from './desktop/hybrid/HybridManager';
 export * from './desktop/hybrid/HybridManagerAdapter';
 export * from './desktop/hybrid/HybridManagerEventMap';
