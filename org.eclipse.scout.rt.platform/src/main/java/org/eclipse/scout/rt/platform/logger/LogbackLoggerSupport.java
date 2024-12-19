@@ -46,7 +46,7 @@ public class LogbackLoggerSupport extends AbstractLoggerSupport {
     LoggerContext loggerContext = Assertions.assertNotNull((LoggerContext) factory, "No {} provided", LoggerContext.class);
 
     loggerContext.addConfigurationEventListener(evt -> {
-      if (evt.getEventType() == EventType.CONFIGURATION_ENDED) {
+      if (evt.getEventType() == EventType.CONFIGURATION_ENDED_SUCCESSFULLY) {
         clearInitialStates(); // initial states will be set again with the following setLogLevel calls (however they might have changed after reload)
 
         // re-apply all dynamically set custom log-levels
@@ -129,7 +129,6 @@ public class LogbackLoggerSupport extends AbstractLoggerSupport {
     }
     switch (level) {
       case ALL:
-        return Level.ALL;
       case TRACE:
         return Level.TRACE;
       case DEBUG:

@@ -54,7 +54,7 @@ public class LogbackLoggerSupportTest extends AbstractLoggerSupportTest {
   @Test
   public void testScoutToLogbackLevel() {
     assertNull(m_loggerSupport.scoutToLogbackLevel(null));
-    assertEquals(Level.ALL, m_loggerSupport.scoutToLogbackLevel(LogLevel.ALL));
+    assertEquals(Level.TRACE, m_loggerSupport.scoutToLogbackLevel(LogLevel.ALL));
     assertEquals(Level.TRACE, m_loggerSupport.scoutToLogbackLevel(LogLevel.TRACE));
     assertEquals(Level.DEBUG, m_loggerSupport.scoutToLogbackLevel(LogLevel.DEBUG));
     assertEquals(Level.INFO, m_loggerSupport.scoutToLogbackLevel(LogLevel.INFO));
@@ -139,7 +139,7 @@ public class LogbackLoggerSupportTest extends AbstractLoggerSupportTest {
 
     // trigger event listener
     ConfigurationEvent event = mock(ConfigurationEvent.class);
-    when(event.getEventType()).thenReturn(EventType.CONFIGURATION_ENDED);
+    when(event.getEventType()).thenReturn(EventType.CONFIGURATION_ENDED_SUCCESSFULLY);
     listener.listen(event);
 
     // expect previous change to be restored again
