@@ -13,6 +13,9 @@
   padding: @text-field-padding-y @text-field-padding-x;
   #scout.user-select(text);
   white-space: pre-wrap;
+  
+  // fix text selection bug in chrome
+  position: relative;
 
   & > img {
     display: none;
