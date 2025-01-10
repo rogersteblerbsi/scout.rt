@@ -23,7 +23,7 @@ This module contains the web runtime components running in the browser.
 
 If you are completely new and wondering what Eclipse Scout is, please visit our [website](https://eclipse.dev/scout/).
 
-To get started with Scout, follow our [Get Started Guide](https://eclipsescout.github.io/stable/getstarted.html).
+To get started with Scout, follow our [Get Started Guide](https://eclipsescout.github.io/scout-docs/25.1/getstarted/getstarted.html).
 
 
 ## Documentation

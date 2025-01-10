@@ -24,7 +24,7 @@ To set up the tool, do the following:
 - Add a devDependency to `@eclipse-scout/migrate`.
 - Run `pnpm install` to install the new dependency.
 - Do the required migration as described in the following chapters.
-- When you are finished, remove the added dependency and migration script from you `package.json`.
+- When you are finished, remove the added dependency and migration script from your `package.json`.
 
 ```json
 {
@@ -138,7 +138,7 @@ In order to run the TypeScript migration, do the following:
     In your widget, implement the model interface and declare a model variable.
   - To create the event maps, you can run the `event-maps` script from below and copy the result into a separate event maps file.
 - If you use third party libraries, you may want to check if they provide types and add them to the `devDependencies` of your `package.json` (e.g. @types/jquery).
-  See also [Project Setup for TypeScript](https://eclipsescout.github.io/scout-docs/stable/technical-guide/user-interface/typescript.html#project-setup-for-typescript)
+  See also [Project Setup for TypeScript](https://eclipsescout.github.io/scout-docs/25.1/technical-guide/user-interface/typescript.html#project-setup-for-typescript)
 - Remove the added `scripts`, `overrides` and dependency to `@eclipse-scout/migrate`.
 
 ```json
@@ -215,5 +215,5 @@ For the TypeScript migration, you can do it as follows:
 }
 ```
 
-**Note**: you can either define the module map in the config file or pass it ass arguments to the script.
+**Note**: you can either define the module map in the config file or pass it as arguments to the script.
 If you do both, they will be merged. If they contain the same keys, the value passed via argument wins.
