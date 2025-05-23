@@ -9,7 +9,6 @@
  */
 package org.eclipse.scout.rt.shared;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.eclipse.scout.rt.platform.Bean;
@@ -33,15 +32,9 @@ public interface ISession {
   String getId();
 
   /**
-   * Shared context variable containing the authenticated userId in lowercase
+   * Authenticated userId in lowercase
    */
   String getUserId();
-
-  /**
-   * @return the shared variable map. Shared variables are automatically updated on the client by client notifications
-   * when changed on the server.
-   */
-  Map<String, Object> getSharedVariableMap();
 
   /**
    * Returns true if the session has been loaded and is running.

@@ -130,7 +130,6 @@ public class ServiceTunnelServletTest {
 
     final TestServerSession testServerSession = new TestServerSession();
     testServerSession.start("testSessionId");
-    testServerSession.setSharedContextVariable("userId", String.class, "testUser");
 
     HttpServletRequest requestMock = mock(HttpServletRequest.class);
     HttpSession testHttpSession = mock(HttpSession.class);

@@ -51,7 +51,7 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
   remoteUrl: string;
   unloadUrl: string;
   modelAdapterRegistry: Record<string, ModelAdapterLike>;
-  sharedVariableMap: Record<string, any>;
+  variableMap: Record<string, any>;
   ajaxCalls: AjaxCall[];
   asyncEvents: RemoteEvent[];
   currentEvent: RemoteEvent;
@@ -129,7 +129,7 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
     this.reconnector = new Reconnector(this);
     this.processingEvents = false;
     this.adapterExportEnabled = false;
-    this.sharedVariableMap = {};
+    this.variableMap = {};
     this._adapterDataCache = {};
     this._deferred = null;
     this._fatalMessagesOnScreen = {};
@@ -236,7 +236,7 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
    * @returns the value of the shared variable with given name.
    */
   getSharedVariable<TKey extends keyof SharedVariables & string>(name: TKey): SharedVariables[TKey] {
-    return this.sharedVariableMap[name];
+    return this.variableMap[name];
   }
 
   unregisterModelAdapter(modelAdapter: ModelAdapter) {

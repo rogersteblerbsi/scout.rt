@@ -13,7 +13,6 @@ import static org.eclipse.scout.rt.platform.util.Assertions.*;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.eclipse.scout.rt.platform.BEANS;
@@ -21,13 +20,9 @@ import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.annotations.ConfigOperation;
 import org.eclipse.scout.rt.platform.job.IFuture;
 import org.eclipse.scout.rt.platform.job.Jobs;
-import org.eclipse.scout.rt.platform.util.CollectionUtility;
-import org.eclipse.scout.rt.platform.util.TypeCastUtility;
 import org.eclipse.scout.rt.platform.util.event.FastListenerList;
 import org.eclipse.scout.rt.platform.util.event.IFastListenerList;
 import org.eclipse.scout.rt.security.IAccessControlService;
-import org.eclipse.scout.rt.server.clientnotification.ClientNotificationRegistry;
-import org.eclipse.scout.rt.server.clientnotification.IClientNodeId;
 import org.eclipse.scout.rt.server.context.RunMonitorCancelRegistry;
 import org.eclipse.scout.rt.server.extension.IServerSessionExtension;
 import org.eclipse.scout.rt.server.extension.ServerSessionChains.ServerSessionLoadSessionChain;
@@ -37,8 +32,6 @@ import org.eclipse.scout.rt.shared.extension.IExtensibleObject;
 import org.eclipse.scout.rt.shared.extension.IExtension;
 import org.eclipse.scout.rt.shared.extension.ObjectExtensions;
 import org.eclipse.scout.rt.shared.job.filter.future.SessionFutureFilter;
-import org.eclipse.scout.rt.shared.services.common.context.SharedContextChangedNotification;
-import org.eclipse.scout.rt.shared.services.common.context.SharedVariableMap;
 import org.eclipse.scout.rt.shared.services.common.security.ILogoutService;
 import org.eclipse.scout.rt.shared.session.IGlobalSessionListener;
 import org.eclipse.scout.rt.shared.session.ISessionListener;
@@ -65,45 +58,17 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
   private volatile boolean m_active;
   private volatile boolean m_stopping;
   private final SessionData m_sessionData;
-  private final SharedVariableMap m_sharedVariableMap;
   private final ObjectExtensions<AbstractServerSession, IServerSessionExtension<? extends AbstractServerSession>> m_objectExtensions;
 
   public AbstractServerSession(boolean autoInitConfig) {
     m_eventListeners = new FastListenerList<>();
     m_sessionData = new SessionData();
-    m_sharedVariableMap = new SharedVariableMap();
     m_objectExtensions = new ObjectExtensions<>(this, true);
 
     m_sessionMetrics.sessionCreated(SESSION_TYPE);
     if (autoInitConfig) {
       interceptInitConfig();
     }
-  }
-
-  @Override
-  public Map<String, Object> getSharedVariableMap() {
-    return CollectionUtility.copyMap(m_sharedVariableMap);
-  }
-
-  /**
-   * do not use this internal method directly
-   */
-  protected <T> T getSharedContextVariable(String name, Class<T> type) {
-    Object o = m_sharedVariableMap.get(name);
-    return TypeCastUtility.castValue(o, type);
-  }
-
-  /**
-   * do not use this internal method directly
-   */
-  protected <T> void setSharedContextVariable(String name, Class<T> type, T value) {
-    T typedValue = TypeCastUtility.castValue(value, type);
-    m_sharedVariableMap.put(name, typedValue);
-  }
-
-  private void assignUserId() {
-    String userId = BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
-    setUserIdInternal(userId);
   }
 
   /**
@@ -121,11 +86,7 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
 
   @Override
   public final String getUserId() {
-    return getSharedContextVariable("userId", String.class);
-  }
-
-  private void setUserIdInternal(String newValue) {
-    setSharedContextVariable("userId", String.class, newValue);
+    return BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
   }
 
   @Override
@@ -152,18 +113,6 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
       return;
     }
 
-    m_sharedVariableMap.addPropertyChangeListener(e -> {
-      if (IClientNodeId.CURRENT.get() != null) {
-        String sessionId = getId();
-        if (sessionId != null) {
-          SharedContextChangedNotification notification = new SharedContextChangedNotification(CollectionUtility.copyMap(m_sharedVariableMap));
-          BEANS.get(ClientNotificationRegistry.class).putTransactionalForSession(sessionId, notification);
-        }
-        else {
-          LOG.warn("No sessionId set");
-        }
-      }
-    });
     m_initialized = true;
   }
 
@@ -187,7 +136,6 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
     assertFalse(isStopping(), "Session cannot be started because it is currently stopping.");
     m_id = assertNotNull(sessionId, "Session id must not be null");
 
-    assignUserId();
     interceptLoadSession();
 
     m_active = true;

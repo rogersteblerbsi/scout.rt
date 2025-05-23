@@ -49,15 +49,17 @@ import org.eclipse.scout.rt.platform.util.CollectionUtility;
 import org.eclipse.scout.rt.platform.util.TypeCastUtility;
 import org.eclipse.scout.rt.platform.util.event.FastListenerList;
 import org.eclipse.scout.rt.platform.util.event.IFastListenerList;
+import org.eclipse.scout.rt.security.IAccessControlService;
 import org.eclipse.scout.rt.shared.extension.AbstractExtension;
 import org.eclipse.scout.rt.shared.extension.IExtensibleObject;
 import org.eclipse.scout.rt.shared.extension.IExtension;
 import org.eclipse.scout.rt.shared.extension.ObjectExtensions;
 import org.eclipse.scout.rt.shared.services.common.context.SharedVariableMap;
-import org.eclipse.scout.rt.shared.services.common.ping.IPingService;
 import org.eclipse.scout.rt.shared.services.common.security.ILogoutService;
 import org.eclipse.scout.rt.shared.session.IGlobalSessionListener;
 import org.eclipse.scout.rt.shared.session.ISessionListener;
+import org.eclipse.scout.rt.shared.session.ISessionService;
+import org.eclipse.scout.rt.shared.session.LoadInitialVariablesResponse;
 import org.eclipse.scout.rt.shared.session.SessionData;
 import org.eclipse.scout.rt.shared.session.SessionEvent;
 import org.eclipse.scout.rt.shared.session.SessionMetricsHelper;
@@ -91,8 +93,8 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   private VirtualDesktop m_virtualDesktop;
   private volatile Subject m_subject;
 
-  private final SharedVariableMap m_sharedVariableMap;
-  private Set<String> m_exposedSharedVariables;
+  private final SharedVariableMap m_variableMap;
+  private Set<String> m_exposedVariables;
 
   private IMemoryPolicy m_memoryPolicy;
   private final SessionData m_sessionData;
@@ -107,8 +109,8 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
     m_userAgent = UserAgent.get();
     m_subject = Subject.current();
     m_objectExtensions = new ObjectExtensions<>(this, true);
-    m_sharedVariableMap = new SharedVariableMap();
-    m_exposedSharedVariables = null;
+    m_variableMap = new SharedVariableMap();
+    m_exposedVariables = null;
 
     m_sessionMetrics.sessionCreated(SESSION_TYPE);
     setLocale(NlsLocale.get());
@@ -137,8 +139,8 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   }
 
   @Override
-  public Set<String> getExposedSharedVariables() {
-    var exposedVariables = m_exposedSharedVariables;
+  public Set<String> getExposedVariables() {
+    var exposedVariables = m_exposedVariables;
     if (exposedVariables == null) {
       return emptySet();
     }
@@ -146,12 +148,12 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   }
 
   /**
-   * @return A {@link Set} of shared variable names (see {@link #getSharedVariableMap()}) that should be sent to the
+   * @return A {@link Set} of variable names (see {@link #getVariableMap()}) that should be sent to the
    * browser. Default returns {@code null} (no properties are synced).
    */
   @Order(100)
   @ConfigProperty(ConfigProperty.OBJECT)
-  protected Set<String> getConfiguredExposedSharedVariables() {
+  protected Set<String> getConfiguredExposedVariables() {
     return null;
   }
 
@@ -165,7 +167,7 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
    */
   @Override
   public String getUserId() {
-    return getSharedContextVariable("userId", String.class);
+    return BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
   }
 
   @Override
@@ -212,20 +214,19 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   }
 
   @Override
-  public Map<String, Object> getSharedVariableMap() {
-    return CollectionUtility.copyMap(m_sharedVariableMap);
+  public Map<String, Object> getVariableMap() {
+    return CollectionUtility.copyMap(m_variableMap);
   }
 
   /**
-   * Do not use this method directly. Create specific (typed) methods instead to access shared variables. (like
+   * Do not use this method directly. Create specific (typed) methods instead to access variables. (like
    * {@link #getUserId()})
    * <p>
-   * Returns the variables shared with the server. Shared variables are automatically updated on the client by client
-   * notifications when changed on the server.
+   * Returns the variables holding additional information used by the client session
    * </p>
    */
-  protected <T> T getSharedContextVariable(String name, Class<T> type) {
-    Object o = m_sharedVariableMap.get(name);
+  protected <T> T getVariable(String name, Class<T> type) {
+    Object o = m_variableMap.get(name);
     return TypeCastUtility.castValue(o, type);
   }
 
@@ -240,12 +241,12 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   protected void initConfig() {
     m_virtualDesktop = new VirtualDesktop();
     m_browserUri = resolveBrowserUri();
-    m_exposedSharedVariables = getConfiguredExposedSharedVariables();
+    m_exposedVariables = getConfiguredExposedVariables();
 
     setMemoryPolicy(resolveMemoryPolicy());
-    m_sharedVariableMap.addPropertyChangeListener(e -> {
+    m_variableMap.addPropertyChangeListener(e -> {
       if (SharedVariableMap.PROP_VALUES.equals(e.getPropertyName())) {
-        ModelJobs.schedule(() -> propertySupport.firePropertyChange(PROP_SHARED_VARIABLE_MAP, e.getOldValue(), e.getNewValue()),
+        ModelJobs.schedule(() -> propertySupport.firePropertyChange(PROP_VARIABLE_MAP, e.getOldValue(), e.getNewValue()),
             ModelJobs.newInput(ClientRunContexts.copyCurrent()));
       }
     });
@@ -289,25 +290,40 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   }
 
   /**
-   * replace the shared variable map with a new version.
+   * replace the variable map with a new version.
    *
    * @param newMap
    *     map to replace the current one with
    */
   @Override
-  public void replaceSharedVariableMapInternal(Map<String, Object> newMap) {
-    m_sharedVariableMap.updateInternal(newMap);
+  public void replaceVariableMapInternal(Map<String, Object> newMap) {
+    m_variableMap.updateInternal(newMap);
   }
 
   /**
-   * Pings the server to get the initial shared variables. Blocks until the initial version of the shared variables is
+   * replace a variable in the variable map with a new value.
+   */
+  @Override
+  public void replaceVariableInternal(String variableName, Object newValue) {
+    m_variableMap.put(variableName, newValue);
+  }
+
+  /**
+   * Loads the initial variables from the server. Blocks until the initial version of the variables is
    * available or the timeout is reached.
    *
    * @throws ProcessingException
    *     if interrupted (and the variables are not initialized)
    */
-  protected void initializeSharedVariables() {
-    BEANS.get(IPingService.class).ping("");
+  protected void initializeVariables() {
+    interceptInitializeVariables(BEANS.get(ISessionService.class).loadInitialVariables());
+  }
+
+  /**
+   * Hook for initializing session variables
+   */
+  protected void interceptInitializeVariables(LoadInitialVariablesResponse initialVariablesResponse) {
+    // NOP
   }
 
   @Override

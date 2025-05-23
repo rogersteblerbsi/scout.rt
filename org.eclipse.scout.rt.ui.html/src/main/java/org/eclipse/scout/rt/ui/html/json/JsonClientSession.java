@@ -72,10 +72,10 @@ public class JsonClientSession<CLIENT_SESSION extends IClientSession> extends Ab
   @Override
   protected void initJsonProperties(CLIENT_SESSION model) {
     super.initJsonProperties(model);
-    putJsonProperty(new JsonProperty<>(IClientSession.PROP_SHARED_VARIABLE_MAP, model) {
+    putJsonProperty(new JsonProperty<>(IClientSession.PROP_VARIABLE_MAP, model) {
       @Override
       protected Map<String, Object> modelValue() {
-        return getExposedSharedVariables();
+        return getExposedVariables();
       }
 
       @Override
@@ -95,14 +95,14 @@ public class JsonClientSession<CLIENT_SESSION extends IClientSession> extends Ab
     }
   }
 
-  protected Map<String, Object> getExposedSharedVariables() {
-    var exposedSharedVariables = getModel().getExposedSharedVariables();
-    if (exposedSharedVariables.isEmpty()) {
+  protected Map<String, Object> getExposedVariables() {
+    var exposedVariables = getModel().getExposedVariables();
+    if (exposedVariables.isEmpty()) {
       return emptyMap();
     }
-    return getModel().getSharedVariableMap()
+    return getModel().getVariableMap()
         .entrySet().stream()
-        .filter(entry -> exposedSharedVariables.contains(entry.getKey()))
+        .filter(entry -> exposedVariables.contains(entry.getKey()))
         .collect(StreamUtility.toMap(Entry::getKey, Entry::getValue));
   }
 

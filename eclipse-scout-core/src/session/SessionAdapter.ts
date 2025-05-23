@@ -13,7 +13,7 @@ export class SessionAdapter extends ModelAdapter {
 
   override _initProperties(model: SessionModel) {
     super._initProperties(model);
-    this.session.sharedVariableMap = model.sharedVariableMap || {};
+    this.session.variableMap = model.variableMap || {};
   }
 
   protected override _writeProperty(propertyName: string, value: any) {

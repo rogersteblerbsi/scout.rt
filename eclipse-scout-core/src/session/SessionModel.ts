@@ -70,7 +70,7 @@ export interface SessionModel extends ObjectModel<Session> {
   ajaxCallOptions?: AjaxCallModel;
 
   /**
-   * Map of shared variables coming from the backend client session. See IClientSession.java#getExposedSharedVariables.
+   * Map of variables coming from the client session. See IClientSession.java#getExposedVariables.
    */
-  sharedVariableMap?: Record<string, any>;
+  variableMap?: Record<string, any>;
 }
